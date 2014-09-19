@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="hellosome" default="compile" basedir=".">
+    <property name="src.dir" location="src"/>
+    <property name="build.dir" location="build"/>
+    <property name="lib.dir" location="lib"/>
+    <property name="jar.name" value="${ant.project.name}.jar"/>
+    <property name="source.encoding" value="utf-8"/>
+    
+    <!-- Classpath の読み込み -->
+    <manifestclasspath property="class.path" jarfile="${jar.name}">
+	<classpath id="class.path">
+	    <fileset dir="${lib.dir}">
+		<include name="**/*.jar"/>
+	    </fileset>
+	</classpath>
+    </manifestclasspath>
+    
+    <!-- Ant の基本的な初期化 -->
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build.dir}"/>
+    </target>
+    
+    <!-- ソースファイルのコンパイル -->
+    <target name="compile" depends="init" description="compiel the source code">
+	<javac srcdir="${src.dir}" destdir="${build.dir}" encoding="${source.encoding}"/>
+    </target>
+    
+    <!-- 通常のjarパッケージファイルの作成 -->
+    <target name="jar" depends="compile" description="generate the distribution">
+	<jar jarfile="${jar.name}" basedir="${build.dir}">
+	    <manifest>
+		<attribute name="Main-Class" value="org.hilib.script.SomeLangHello"/>
+		<attribute name="Class-Path" value="${class.path}"/>
+	    </manifest>
+	</jar>
+    </target>
+    
+    <!-- 単一jarパッケージ(One-Jarモード)ファイルの作成 -->
+    <target name="onejar" depends="compile" description="generate one jar file">
+	<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask"
+	    classpath="lib/one-jar-ant-task-0.97.jar"/>
+	<one-jar destfile="${jar.name}">
+	    <manifest>
+		<attribute name="Main-Class" value="main/main.jar"/>
+		<attribute name="One-Jar-Main-Class" value="org.hilib.script.SomeLangHello"/>
+	    </manifest>
+	    <main>
+		<fileset dir="${build.dir}"/>
+	    </main>
+	    <lib>
+		<fileset file="lib/*.jar"/>
+	    </lib>
+	</one-jar>
+    </target>
+    
+    <!-- 単一jarパッケージ(fatjarモード)ファイルの作成 -->
+    <target name="fatjar" depends="compile" description="generate the jar file">
+	<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
+	    classpath="lib/jarjar.jar"/>
+	<jarjar jarfile="${jar.name}">
+	    <manifest>
+		<attribute name="Main-Class" value="org.hilib.script.SomeLangHello"/>
+	    </manifest>
+	    <fileset dir="${build.dir}"/>
+	    <zipfileset src="lib/commons-lang-2.1.jar"/>
+	    <zipfileset src="lib/jaskell-1.0.jar"/>
+	    <zipfileset src="lib/jaskell-engine.jar"/>
+	    <zipfileset src="lib/jfunutil.jar"/>
+	    <zipfileset src="lib/jparsec.jar"/>
+	    <zipfileset src="lib/scheme-engine.jar"/>
+	    <zipfileset src="lib/sisc-lib.jar"/>
+	    <zipfileset src="lib/sisc-opt.jar"/>
+	    <zipfileset src="lib/sisc.jar"/>
+	</jarjar>
+    </target>
+    
+    <!-- 生成オブジェクトの削除 -->
+    <target name="clean" description="clean up">
+	<delete dir="${build.dir}"/>
+	<delete dir="${dist.dir}"/>
+    </target>
+</project>
